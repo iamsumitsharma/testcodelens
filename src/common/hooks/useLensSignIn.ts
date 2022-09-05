@@ -19,7 +19,6 @@ export const useLensSignIn = (): UseLensSignInResults => {
   const { address } = useAccount();
 
   const { signMessageAsync } = useSignMessage({
-    message: message,
     onSettled(data, error) {
       console.log("Settled", { data, error });
     },
@@ -71,9 +70,11 @@ export const useLensSignIn = (): UseLensSignInResults => {
         })
         .toPromise();
 
-      setMessage(challengeResponse.data.challenge.text);
+     setMessage(challengeResponse.data.challenge.text);
+    const signature = await signMessageAsync({message: challengeResponse.data.challenge.text});
 
-      const signature = await signMessageAsync();
+
+
 
       const accessTokens = await client
         .mutation(AUTHENTICATE_LOGIN, {
