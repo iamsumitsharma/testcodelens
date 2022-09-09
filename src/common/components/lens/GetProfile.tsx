@@ -1,8 +1,9 @@
 import Link from "next/link";
 import React, { FunctionComponent, useState } from "react";
 import { AiFillCloseCircle } from "react-icons/ai";
+import { GetProfileProps } from "../../../generated/lens/lenstypes.types";
 import { LensSignIn } from "../buttons/LensSignIn";
-import {GetProfileProps} from "./../../../generated/lens/lenstypes"
+
 
 export const GetProfile: FunctionComponent<GetProfileProps> = ({handleLensModalClose, modalClose, lensLogin}): JSX.Element | null => {
 
@@ -28,7 +29,7 @@ export const GetProfile: FunctionComponent<GetProfileProps> = ({handleLensModalC
           className="mb-5"
         /> */}
         <div className="text-center">
-          <Link href={"https://claim.lens.xyz/"}>
+          <Link href={"https://claim.lens.xyz/"} target="_blank" rel="noreferrer">
             <button className="px-5 py-2 bg-darkGreenLens font-space text-greenLens mb-3 rounded hover:opacity-80">
               Claim Handle
             </button>

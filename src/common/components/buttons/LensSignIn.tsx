@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useMemo } from "react";
+import React, { FunctionComponent, useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { LensSignInProps } from "../../../generated/lens/lenstypes";
 

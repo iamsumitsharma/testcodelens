@@ -1,49 +1,51 @@
 import React, { FunctionComponent } from "react";
-import { useLensSignIn } from "../../hooks/useLensSignIn";
 import { CgProfile } from "react-icons/cg";
 import Image from "next/image";
+import { ProfileHandleProps } from "../../../generated/lens/lenstypes.types";
 
-export const ProfileHandle: FunctionComponent = (): JSX.Element => {
-  const { lensProfile } = useLensSignIn();
-  const { handle, picture } = lensProfile;
+export const ProfileHandle: FunctionComponent<ProfileHandleProps> = ({
+  lensProfile,
+}): JSX.Element => {
 
   const getAvatar = (picture: any) => {
     if (!picture) {
       return (
         <CgProfile
           color="#00501e"
-          className="w-8 h-8 rounded-full drop-shadow-md"
+          width={10}
+          height={10}
         />
       );
     } else if (picture.original) {
       if (picture.original.url.includes("http")) {
         return (
-          <div className="w-8 h-8 rounded-full drop-shadow-md">
-            <Image src={picture.original.url} width={"10px"} height={"10px"} />
-          </div>
+            <Image src={picture.original.url} width={10} height={10} />
         );
       } else {
         const cut = picture.original.url.split("/");
         const link = "https://lens.infura-ipfs.io/ipfs/" + cut[cut.length - 1];
         return (
-          <div className="w-8 h-8 rounded-full drop-shadow-md">
-            <Image src={link} width={"10px"} height={"10px"} />
-          </div>
+            <Image src={link} width={10} height={10} />
         );
       }
     } else {
       return (
-        <div className="w-8 h-8 rounded-full drop-shadow-md">
-          <Image src={picture.uri} width={"10px"} height={"10px"} />
-        </div>
+          <Image src={picture.uri} width={10} height={10} />
       );
     }
   };
 
   return (
-    <div>
-      <div>{getAvatar(picture)}</div>
-      <div>{handle}</div>
-    </div>
+    <button
+      type="button"
+      className="m-0 cursor-pointer justify-center font-space text-lensDark text-xs bg-lensLight h-10 w-fit py-1 px-2 rounded-lg hover:opacity-90 relative top-1 left-[60px]"
+    >
+      <div className="w-full justify-center relative flex">
+        <div>@{lensProfile?.handle}</div>
+        {/* <div className="absolute rounded-full drop-shadow-md">
+          {getAvatar(lensProfile?.picture)}
+          </div> */}
+      </div>
+    </button>
   );
 };
