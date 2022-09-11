@@ -1,4 +1,4 @@
-import { useLensPostResult } from "../../../generated/lens/lenstypes.types";
+import { PostArgsType, postContentType, useLensPostResult } from "./../../../generated/lens/lenstypes.types";
 import {
   useAccount,
   usePrepareContractWrite,
@@ -6,43 +6,56 @@ import {
   useContractWrite,
 } from "wagmi";
 import LensHubProxy from "./../../../abis/LensHubProxy.json";
-import { LENS_HUB_PROXY_ADDRESS } from "../../../lib/lens/constants";
+import { LENS_HUB_PROXY_ADDRESS_MUMBAI } from "../../../lib/lens/constants";
 import { splitSignature, omit } from "../../../lib/lens/helpers";
 import createPostTypedData from "../../../graphql/mutations/createPost";
 import getDefaultProfile from "../../../graphql/queries/userProfile";
+import checkIndexed from "../../../graphql/queries/indexer";
+import { useState } from "react";
 
 export const useLensPost = (): useLensPostResult => {
+  const [args, setArgs] = useState<PostArgsType | undefined>();
+  const [showPostButton, setShowPostButton] = useState<boolean>(false);
+  const [enabled, setEnabled] = useState<boolean>(false);
   const { signTypedDataAsync } = useSignTypedData();
   const { address } = useAccount();
-
   
-    const { config } = usePrepareContractWrite({
-      addressOrName: LENS_HUB_PROXY_ADDRESS,
-      contractInterface: LensHubProxy,
-      functionName: "postWithSig",
-      args: [],
-      onError(error) {
-        console.log("rendered alraedy");
-      },
-      onSuccess(data) {
-        console.log("post Success", data);
-      },
-      onSettled(data, error) {
-        console.log();
-      },
-    });
+  const { config } = usePrepareContractWrite({
+    addressOrName: LENS_HUB_PROXY_ADDRESS_MUMBAI,
+    contractInterface: LensHubProxy,
+    functionName: "postWithSig",
+    onError(error) {
+      console.error('Error', error)
+    },
+    onSettled(error) {
+      console.log('Settled', error)
+    },
+    onSuccess(error) {
+      console.log('Success', error)
+    },
+    enabled: Boolean(enabled),
+    args: [args]
+  });
 
-    const { writeAsync } = useContractWrite(config);
- 
-  const handlePostData = async (e: any) => {
+  const { writeAsync } = useContractWrite(config);
+
+  const handlePostData = async (e: any): Promise<void> => {
     e.preventDefault();
+
+    let postContent: postContentType = {
+      prompt: e.target.prompt.value,
+      description: e.target.description.value,
+      files: [e.target.post.files[0], e.target.post.files[1], e.target.post.files[2]]
+    }
+    console.log(postContent)
+
     try {
+
       const profile = await getDefaultProfile(address);
-      console.log(profile.data.defaultProfile.id);
 
       const result = await createPostTypedData({
         profileId: profile.data.defaultProfile.id,
-        contentURI: "https://ipfs.infura.io/ipfs/",
+        contentURI: "ipfs://bafkreigdvytd54m663k6cr5jxl7swy4awhtze4ebg27ps57dra6c7q3n44",
         collectModule: {
           revertCollectModule: true,
         },
@@ -61,7 +74,7 @@ export const useLensPost = (): useLensPostResult => {
 
       const { v, r, s } = splitSignature(signature);
 
-      const postArgs = {
+      const postArgs: PostArgsType = {
         profileId: typedData.value.profileId,
         contentURI: typedData.value.contentURI,
         collectModule: typedData.value.collectModule,
@@ -76,29 +89,36 @@ export const useLensPost = (): useLensPostResult => {
         },
       };
 
-      const tx = await writeAsync?.({
-        recklesslySetUnpreparedArgs: [postArgs],
-      });
-      const res = await tx?.wait();
+      setArgs(postArgs);
+      setShowPostButton(true);
+      setEnabled(true);
+
     } catch (err: any) {
       console.error(err.message);
     }
   };
 
-  const handleFileChange = (e: any): any[] => {
-    const allFiles = [e.target.files[0], e.target.files[1], e.target.files[2]];
-    console.log(allFiles[0]);
-    return allFiles;
-  };
+  const handlePostWrite = async (): Promise<void> => {
+    const tx = await writeAsync?.()
+    const res = await tx?.wait()
 
-  // HASH IMAGES FIRST
-  // THEN TAKE HAS STRINGS AND APPEND IN POST OBJECT
-  // PUT POST OBJECT INTO FORM DATA API
-  // PASS THAT BACK TO IPFS HASH
-  // PASS URI TO LENS
+    setTimeout( async () => {
+      const result = await checkIndexed(tx?.hash)
+      console.log(result)
+    }, 10000)
+  }
+
+  const handleFileChange = (e: any): void => {
+    e.preventDefault();
+
+  };
 
   const handleHashImages = (e: any): void => {
     e.preventDefault();
+
   };
-  return { handlePostData, handleHashImages, handleFileChange };
+  
+  
+
+  return { handlePostWrite, handlePostData, handleHashImages, handleFileChange, showPostButton };
 };

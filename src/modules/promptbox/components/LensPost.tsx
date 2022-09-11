@@ -7,9 +7,10 @@ export const LensPost: FunctionComponent<LensPostProps> = ({
 
   return (
       <form
-        onSubmit={handlePostData}
+      onSubmit={handlePostData}
       >
         <button
+     
           type="submit"
           className=" absolute p-2 rounded-b-lg text-distro text-white text-base bg-offBlack"
         >
